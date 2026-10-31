@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.svg" width="100%" alt="Pixel-art red maple bonsai under a night sky, next to the name Ethan Chang">
+</p>
+
 ### Hi, I'm Ethan
 
 I'm a computer science student at RIT, graduating in May 2027. I work in software engineering and data science, and I'm currently a year-round R&D intern at Sandia National Laboratories.
