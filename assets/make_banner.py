@@ -1,27 +1,56 @@
-"""Builds assets/banner.svg: a pixel-art red maple bonsai under a night sky.
+"""Builds the animated GitHub profile banner: a pixel-art bonsai under a night sky.
 
 The animation is plain CSS inside the SVG (GitHub plays it in READMEs; no
 scripts). The tree is drawn on a 4px grid and every color becomes one <path>,
-so the file stays small. Same seed, same tree.
+so the file stays small. Same seed, same tree, whichever theme.
 
-    python3 assets/make_banner.py
+    python3 assets/make_banner.py                  # red and black -> banner.svg
+    python3 assets/make_banner.py --theme autumn   # fall colors   -> banner-autumn.svg
 """
 import math
 import random
+import sys
 from pathlib import Path
 
 S = 4                      # px per pixel-art cell
 W, H = 960, 320            # banner size in px
 rnd = random.Random(27)
 
-# Portfolio palette: warm near-black, crimson, ember, gold
-SKY_TOP, SKY_BOTTOM = '#060507', '#140a08'
-LEAF = ['#4f1513', '#7e2420', '#b23428', '#d9532c', '#ee8a35', '#f4c463']
-BARK = {'light': '#8c5b3b', 'base': '#613d29', 'dark': '#3d2418', 'streak': '#2e1b12'}
-POT = {'rim': '#7d4a36', 'lip': '#24140f', 'lit': '#4a2b23', 'mid': '#3a211c',
-       'dark': '#26161a', 'foot': '#1a0f0e', 'gold': '#c9a84c'}
-MOSS = ['#33482a', '#4b6634', '#67853f']
-INK, INK_DIM, GOLD, GOLD_BRIGHT, RED = '#f2efe9', '#a39c91', '#c9a84c', '#f0c060', '#e74c3c'
+THEMES = {
+    # crimson leaves, black wood and lacquer, a blood moon
+    'red': {
+        'file': 'banner.svg', 'tree': 'crimson',
+        'sky': ('#020202', '#0b0304'), 'nebula': (('#b3141f', .2), ('#7a0a12', .14)),
+        'leaf': ['#2b0508', '#520a10', '#820f18', '#b5141f', '#e02a2f', '#ff5a52'],
+        'bark': {'light': '#4a1a1c', 'base': '#1d1414', 'dark': '#0a0707', 'streak': '#2c1c1c'},
+        'pot': {'rim': '#3a1416', 'lip': '#070505', 'lit': '#1f1515', 'mid': '#141010',
+                'dark': '#0a0808', 'foot': '#040303', 'band': '#c0141e'},
+        'moss': ['#140909', '#261012', '#3d1316'], 'pebble': '#2e2424',
+        'stars': ['#f2efe9', '#ff6b6b', '#d8cfcb', '#ff3b3b'], 'sparkle': '#ffe9e6',
+        'moon': ('#ff4d4d', '#a3161f'), 'moonglow': ('#ff2a2a', .3),
+        'line': '#e0242c', 'node': '#ff3b3b', 'embers': ['#ff3b30', '#ff6b4a', '#d4141e'],
+        'floor': '#1a0707', 'name_first': '#f2efe9', 'name': ('#ff6a5a', '#ff3b3b', '#b3141f'),
+        'rule': '#e0242c', 'border': ('#b3141f', .45), 'ink': '#f2efe9', 'ink_dim': '#9c8f8f',
+    },
+    # the first version: red maple in fall, gold moon
+    'autumn': {
+        'file': 'banner-autumn.svg', 'tree': 'red maple',
+        'sky': ('#060507', '#140a08'), 'nebula': (('#c0392b', .16), ('#c9a84c', .07)),
+        'leaf': ['#4f1513', '#7e2420', '#b23428', '#d9532c', '#ee8a35', '#f4c463'],
+        'bark': {'light': '#8c5b3b', 'base': '#613d29', 'dark': '#3d2418', 'streak': '#2e1b12'},
+        'pot': {'rim': '#7d4a36', 'lip': '#24140f', 'lit': '#4a2b23', 'mid': '#3a211c',
+                'dark': '#26161a', 'foot': '#1a0f0e', 'band': '#c9a84c'},
+        'moss': ['#33482a', '#4b6634', '#67853f'], 'pebble': '#8a7d6c',
+        'stars': ['#f2efe9', '#f0c060', '#f6d7b0', '#e8a07a'], 'sparkle': '#fff3d6',
+        'moon': ('#f6e2b0', '#d9bf86'), 'moonglow': ('#f6e2b0', .35),
+        'line': '#c9a84c', 'node': '#f0c060', 'embers': ['#f0c060', '#ee8a35', '#ffd58a'],
+        'floor': '#2a1712', 'name_first': 'url(#name)', 'name': ('#e74c3c', '#e8823f', '#f0c060'),
+        'rule': '#c9a84c', 'border': ('#c9a84c', .28), 'ink': '#f2efe9', 'ink_dim': '#a39c91',
+    },
+}
+theme_name = sys.argv[sys.argv.index('--theme') + 1] if '--theme' in sys.argv else 'red'
+T = THEMES[theme_name]
+LEAF, BARK, POT, MOSS = T['leaf'], T['bark'], T['pot'], T['moss']
 
 
 def to_paths(cells, extra=''):
@@ -63,9 +92,9 @@ for i, y in enumerate(range(64, 72)):
             pot[(x, y)] = POT['dark']
         else:
             pot[(x, y)] = POT['mid']
-for x in range(43, 82):                        # worn gold band
+for x in range(43, 82):                        # worn band around the pot
     if rnd.random() > 0.05:
-        pot[(x, 66)] = POT['gold']
+        pot[(x, 66)] = POT['band']
 for x in range(46, 79):
     pot[(x, 72)] = POT['dark']
 for x in list(range(47, 52)) + list(range(73, 78)):
@@ -76,7 +105,7 @@ for x in range(42, 83):                        # moss and soil just inside the r
     if rnd.random() < 0.45 and 44 < x < 80:
         pot[(x, 60)] = MOSS[rnd.choice([1, 2])]
 for x in (48, 71, 76):                         # pebbles
-    pot[(x, 61)] = '#8a7d6c'
+    pot[(x, 61)] = T['pebble']
 
 # ── trunk and branches: stamped discs, shaded after ──────────────────────────
 wood = set()
@@ -171,7 +200,7 @@ for _ in range(78):
         continue
     size = 4 if rnd.random() < 0.22 else 2
     stars.append((round(x), round(y), size, rnd.uniform(2.2, 6.5), rnd.uniform(-6, 0),
-                  rnd.choice(['#f2efe9', '#f0c060', '#f6d7b0', '#e8a07a'])))
+                  rnd.choice(T['stars'])))
 
 MOON = (888, 64)
 CONSTELLATION = [(488, 74), (538, 46), (586, 82), (640, 54), (694, 88), (742, 60), (792, 98)]
@@ -194,7 +223,7 @@ for i in range(11):
     embers.append({'x': round(rnd.uniform(150, 360)), 'y': round(rnd.uniform(230, 290)),
                    'rise': round(rnd.uniform(110, 210)), 'drift': round(rnd.uniform(-40, 40)),
                    'dur': rnd.uniform(6, 11), 'delay': rnd.uniform(-11, 0),
-                   'color': rnd.choice([GOLD_BRIGHT, '#ee8a35', '#ffd58a'])})
+                   'color': rnd.choice(T['embers'])})
 
 # ── assemble ────────────────────────────────────────────────────────────────
 css = [f"""
@@ -232,27 +261,26 @@ for i, em in enumerate(embers):
 svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
        f'role="img" aria-labelledby="t d">',
        '<title id="t">Ethan Chang</title>',
-       '<desc id="d">Pixel-art red maple bonsai under a night sky, with falling leaves, rising embers, '
+       f'<desc id="d">Pixel-art {T["tree"]} bonsai under a night sky, with falling leaves, rising embers, '
        'twinkling stars and a constellation drawing itself beside the name Ethan Chang.</desc>',
        f'<style>{"".join(css)}</style>',
        '<defs>',
-       f'<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{SKY_TOP}"/>'
-       f'<stop offset="1" stop-color="{SKY_BOTTOM}"/></linearGradient>',
-       '<radialGradient id="neb1" cx=".28" cy=".55" r=".45"><stop offset="0" stop-color="#c0392b" stop-opacity=".16"/>'
-       '<stop offset="1" stop-color="#c0392b" stop-opacity="0"/></radialGradient>',
-       '<radialGradient id="neb2" cx=".72" cy=".25" r=".4"><stop offset="0" stop-color="#c9a84c" stop-opacity=".07"/>'
-       '<stop offset="1" stop-color="#c9a84c" stop-opacity="0"/></radialGradient>',
-       '<radialGradient id="moonglow"><stop offset="0" stop-color="#f6e2b0" stop-opacity=".35"/>'
-       '<stop offset="1" stop-color="#f6e2b0" stop-opacity="0"/></radialGradient>',
+       f'<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{T["sky"][0]}"/>'
+       f'<stop offset="1" stop-color="{T["sky"][1]}"/></linearGradient>',
+       *[f'<radialGradient id="neb{i + 1}" cx="{cx}" cy="{cy}" r="{r}"><stop offset="0" stop-color="{c}" '
+         f'stop-opacity="{o}"/><stop offset="1" stop-color="{c}" stop-opacity="0"/></radialGradient>'
+         for i, ((c, o), (cx, cy, r)) in enumerate(zip(T['nebula'], [('.28', '.55', '.45'), ('.72', '.25', '.4')]))],
+       f'<radialGradient id="moonglow"><stop offset="0" stop-color="{T["moonglow"][0]}" stop-opacity="{T["moonglow"][1]}"/>'
+       f'<stop offset="1" stop-color="{T["moonglow"][0]}" stop-opacity="0"/></radialGradient>',
        '<radialGradient id="shadow"><stop offset="0" stop-color="#000" stop-opacity=".7"/>'
        '<stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>',
-       '<linearGradient id="floor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2a1712" stop-opacity="0"/>'
-       '<stop offset=".25" stop-color="#2a1712" stop-opacity=".9"/><stop offset=".75" stop-color="#2a1712" stop-opacity=".9"/>'
-       '<stop offset="1" stop-color="#2a1712" stop-opacity="0"/></linearGradient>',
-       f'<linearGradient id="name" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{RED}"/>'
-       f'<stop offset=".5" stop-color="#e8823f"/><stop offset="1" stop-color="{GOLD_BRIGHT}"/></linearGradient>',
-       '<linearGradient id="streak" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3d6"/>'
-       '<stop offset="1" stop-color="#fff3d6" stop-opacity="0"/></linearGradient>',
+       f'<linearGradient id="floor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{T["floor"]}" stop-opacity="0"/>'
+       f'<stop offset=".25" stop-color="{T["floor"]}" stop-opacity=".9"/><stop offset=".75" stop-color="{T["floor"]}" stop-opacity=".9"/>'
+       f'<stop offset="1" stop-color="{T["floor"]}" stop-opacity="0"/></linearGradient>',
+       f'<linearGradient id="name" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{T["name"][0]}"/>'
+       f'<stop offset=".5" stop-color="{T["name"][1]}"/><stop offset="1" stop-color="{T["name"][2]}"/></linearGradient>',
+       f'<linearGradient id="streak" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{T["sparkle"]}"/>'
+       f'<stop offset="1" stop-color="{T["sparkle"]}" stop-opacity="0"/></linearGradient>',
        '<filter id="soft" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="1.6"/></filter>',
        f'<clipPath id="frame"><rect width="{W}" height="{H}" rx="14"/></clipPath>',
        '</defs>',
@@ -267,7 +295,7 @@ for (x, y, size, dur, off, color) in stars:
     svg.append(f'<rect class="tw" x="{x}" y="{y}" width="{size}" height="{size}" fill="{color}" '
                f'style="--d:{dur:.1f}s;--o:{off:.1f}s"/>')
 for (x, y) in [(120, 34), (410, 22), (842, 158)]:          # a few bigger cross-shaped stars
-    svg.append(f'<g class="tw" style="--d:4.8s;--o:-{(x % 5):.0f}s" fill="#fff3d6">'
+    svg.append(f'<g class="tw" style="--d:4.8s;--o:-{(x % 5):.0f}s" fill="{T["sparkle"]}">'
                f'<rect x="{x}" y="{y - 4}" width="2" height="10"/><rect x="{x - 4}" y="{y}" width="10" height="2"/></g>')
 svg.append('</g>')
 
@@ -280,18 +308,18 @@ for gx in range(-8, 9):
         inside = gx * gx + gy * gy <= 56
         bite = (gx + 4) ** 2 + (gy - 2) ** 2 <= 46
         if inside and not bite:
-            moon[(gx + mx // S, gy + my // S)] = '#f6e2b0' if gx > 2 else '#d9bf86'
+            moon[(gx + mx // S, gy + my // S)] = T['moon'][0] if gx > 2 else T['moon'][1]
 svg.append(to_paths(moon, ' shape-rendering="crispEdges"'))
 
 # constellation that draws itself, edge by edge
-svg.append(f'<g stroke="{GOLD}" stroke-width="1.2" stroke-opacity=".6" fill="none">')
+svg.append(f'<g stroke="{T["line"]}" stroke-width="1.2" stroke-opacity=".6" fill="none">')
 for i, ((x0, y0), (x1, y1)) in enumerate(zip(CONSTELLATION, CONSTELLATION[1:])):
     svg.append(f'<path class="edge" pathLength="1" d="M{x0} {y0}L{x1} {y1}" style="--o:{i * 0.55:.2f}s"/>')
 svg.append('</g>')
 for i, (x, y) in enumerate(CONSTELLATION):
     o = max(0, i - 1) * 0.55
-    svg.append(f'<g class="node" style="--o:{o:.2f}s"><circle cx="{x}" cy="{y}" r="5" fill="{GOLD_BRIGHT}" '
-               f'opacity=".35" filter="url(#soft)"/><rect x="{x - 2}" y="{y - 2}" width="4" height="4" fill="#fff3d6"/></g>')
+    svg.append(f'<g class="node" style="--o:{o:.2f}s"><circle cx="{x}" cy="{y}" r="5" fill="{T["node"]}" '
+               f'opacity=".35" filter="url(#soft)"/><rect x="{x - 2}" y="{y - 2}" width="4" height="4" fill="{T["sparkle"]}"/></g>')
 
 # shooting star
 # bright head at the lower-left end, so it leads the motion
@@ -327,19 +355,20 @@ for i, lf in enumerate(leaves):
 
 # name and subtitle
 svg.append('<g font-family="Georgia, \'Times New Roman\', serif">'
-           '<text x="486" y="186" font-size="58" font-weight="700" fill="url(#name)" letter-spacing="-0.5">Ethan Chang</text>'
-           f'<rect x="488" y="204" width="56" height="2" fill="{GOLD}"/>'
-           f'<text x="488" y="238" font-size="18" font-style="italic" fill="{INK}" fill-opacity=".9">'
+           '<text x="486" y="186" font-size="58" font-weight="700" letter-spacing="-0.5">'
+           f'<tspan fill="{T["name_first"]}">Ethan </tspan><tspan fill="url(#name)">Chang</tspan></text>'
+           f'<rect x="488" y="204" width="56" height="2" fill="{T["rule"]}"/>'
+           f'<text x="488" y="238" font-size="18" font-style="italic" fill="{T["ink"]}" fill-opacity=".9">'
            'Software engineering and data science</text>'
            '</g>'
            '<text x="488" y="270" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" '
-           f'font-size="12" letter-spacing="1.8" fill="{INK_DIM}">CS @ RIT · CLASS OF 2027 · R&amp;D INTERN @ SANDIA</text>')
+           f'font-size="12" letter-spacing="1.8" fill="{T["ink_dim"]}">CS @ RIT · CLASS OF 2027 · R&amp;D INTERN @ SANDIA</text>')
 
 svg.append('</g>')
 svg.append(f'<rect x=".5" y=".5" width="{W - 1}" height="{H - 1}" rx="13.5" fill="none" '
-           f'stroke="{GOLD}" stroke-opacity=".28"/>')
+           f'stroke="{T["border"][0]}" stroke-opacity="{T["border"][1]}"/>')
 svg.append('</svg>')
 
-out = Path(__file__).with_name('banner.svg')
+out = Path(__file__).with_name(T['file'])
 out.write_text('\n'.join(svg) + '\n')
 print(f'wrote {out} ({out.stat().st_size / 1024:.1f} KB)')
